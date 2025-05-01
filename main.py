@@ -291,6 +291,7 @@ def main():
             SELL_OCTANE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_octane)],
             SELL_QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_quantity)],
             SELL_UNIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_unit)],
+    conv_handler = ConversationHandler(
             SELL_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_price)],
             SELL_CURRENCY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_currency)],
             SELL_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_phone)],
