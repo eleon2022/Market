@@ -296,7 +296,6 @@ def main():
 # ← f-string غير مكتمل
                 MessageHandler(filters.PHOTO, sell_photo),
                 CommandHandler("skip", skip_photo)
-            ],
             BUY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, buy_select)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
