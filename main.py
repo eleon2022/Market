@@ -46,12 +46,11 @@ def save_offers(offers):
         json.dump(offers, f, ensure_ascii=False, indent=2)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data.clear()
     keyboard = [["العربية", "کوردی"]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    text = "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:"
-    await update.message.reply_text(text, reply_markup=reply_markup)
-    return LANG_SELECT
+    await update.message.reply_text(
+        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    )
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = update.message.text
@@ -317,9 +316,12 @@ if __name__ == "__main__":
 
 
 # Start buy process (same as sell)
-async def start_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["type"] = "buy"
-    return await ask_product(update, context)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [["العربية", "کوردی"]]
+    await update.message.reply_text(
+        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    )
 
 # عروض الشراء
 async def show_buy_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
