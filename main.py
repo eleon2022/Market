@@ -11,9 +11,7 @@ def start(update: Update, context: CallbackContext):
     keyboard = [['أضف عرض'], ['شاهد العروض'], ['ابدأ من جديد']]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     update.message.reply_text(
-        "أهلاً وسهلاً بكم في السوق المفتوح في كردستان والعراق!
-"
-        "اختر من الخيارات التالية:",
+        "أهلاً وسهلاً بكم في السوق المفتوح في كردستان والعراق!\nاختر من الخيارات التالية:",
         reply_markup=reply_markup
     )
     user_step[update.message.chat_id] = None
@@ -103,10 +101,7 @@ def show_offers(update: Update):
         return
 
     for offer in offers[-5:]:
-        msg = f"المنتج: {offer.get('product')}
-الكمية: {offer.get('quantity')} {offer.get('unit')}
-السعر: {offer.get('price')} {offer.get('currency')}
-الهاتف: {offer.get('phone')}"
+        msg = f"المنتج: {offer.get('product')}\nالكمية: {offer.get('quantity')} {offer.get('unit')}\nالسعر: {offer.get('price')} {offer.get('currency')}\nالهاتف: {offer.get('phone')}"
         if "photo" in offer:
             update.message.bot.send_photo(chat_id=update.message.chat_id, photo=offer["photo"], caption=msg)
         else:
