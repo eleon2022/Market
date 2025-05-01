@@ -5,7 +5,7 @@ import time
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler, CallbackQueryHandler
 
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
 OFFERS_FILE = "offers.json"
 
 # Logging
