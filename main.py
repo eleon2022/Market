@@ -309,3 +309,31 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+# Start buy process (same as sell)
+async def start_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["type"] = "buy"
+    return await ask_product(update, context)
+
+# عروض الشراء
+async def show_buy_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return await show_filtered_offers(update, context, offer_type="buy")
+
+# عروض البيع
+async def show_sell_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return await show_filtered_offers(update, context, offer_type="sell")
+
+# عند الضغط على زر العروض
+async def ask_offer_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    if lang == "کوردی":
+        keyboard = [["🛒 داواکارییەکانی کڕین", "✅ پیشکەشەکانی فرۆشتن"]]
+    else:
+        keyboard = [["🛒 طلبات الشراء", "✅ عروض البيع"]]
+    await update.message.reply_text(
+        "📦 اختر نوع العروض:" if lang == "العربية" else "📦 جۆری پیشکەشەکان هەڵبژێرە:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return MENU_SELECT
