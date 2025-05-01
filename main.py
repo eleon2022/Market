@@ -4,7 +4,7 @@ import logging
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, ContextTypes
 
-BOT_TOKEN = "ضع توكن البوت هنا"
+BOT_TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
 LANG_SELECT = 0  # حالة اختيار اللغة
 
 # إعداد السجلّات
