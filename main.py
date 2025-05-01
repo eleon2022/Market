@@ -13,7 +13,8 @@ BOT_TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
 # ← نفس المشكلة، تأكد من تبعيته لدالة
 
 # States
-    keyboard = [["العربية", "کوردی"]]
+# FIXED: كان السطر خارج دالة
+keyboard = [["العربية", "کوردی"]]
  SELL_PHONE, SELL_PHOTO, BUY_SELECT) = range(11)
 
 # Products with Emojis
