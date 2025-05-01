@@ -2,326 +2,341 @@
 import logging
 import json
 import time
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import (
-    Application, CommandHandler, MessageHandler, filters,
-    ConversationHandler, ContextTypes, CallbackQueryHandler
-)
+# ← قد تحتاج إلى حذف هذا السطر أو إدراجه داخل دالة
+# ← تأكد أن هذا السطر يتبع بنية منطقية أو داخل دالة
 
-# إعداد السجل
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
+BOT_TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
+# ← راجع صياغته أو دمجه مع ما قبله
 
-# توكن البوت (يرجى استبداله بالتوكن الحقيقي)
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+# Logging
+# ← قد يكون خارج دالة
+# ← نفس المشكلة، تأكد من تبعيته لدالة
 
-# ملف تخزين العروض
-OFFERS_FILE = "offers.json"
+# States
+    keyboard = [["العربية", "کوردی"]]
+ SELL_PHONE, SELL_PHOTO, BUY_SELECT) = range(11)
 
-# تعريف مراحل المحادثة
-(
-    LANG_SELECT, MENU_SELECT,
-    PRODUCT_NAME, OCTANE_LEVEL, QUANTITY, UNIT, PRICE, CURRENCY, PHONE, TRADER,
-    SULFUR, DENSITY, PHOTO
-) = range(13)
+# Products with Emojis
+    await update.message.reply_text(
+        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    )
+    "🛢️ كاز معمل": {"ku": "🛢️ گازۆیل کارگە"},
+    "⚗️ نافتا": {"ku": "⚗️ نافتا"},
+    "⛽ بنزين": {"ku": "⛽ بەنزین"},
+    "🔥 كاز فلاش": {"ku": "🔥 گازۆیل فلاش"},
+    "🧴 دهن معمل": {"ku": "🧴 ئۆیل کارگە"},
+    "✅ فلاوين مواصفات": {"ku": "✅ فلاوین تایبەتمەند"},
+    "🏋️ فلاوين قرص": {"ku": "🏋️ فلاوین قەڵەو"}
+# ← سطر قد يكون مكرر أو بدون معنى
 
-# الوحدات والعملات
-UNITS = ["لتر", "طن"]
-CURRENCIES = ["دينار", "دولار"]
-PRODUCTS_AR = ["كاز معمل", "نافتا", "بنزين", "كاز فلاش", "دهن معمل", "فلاوين مواصفات", "فلاوين قرص"]
-PRODUCTS_KU = ["کاز کارگە", "نافتا", "بەنزین", "کاز فلاش", "ئۆیل کارگە", "فلاوین تایبەتمەند", "فلاوین قورس"]
-
-LANGUAGES = {"العربية": "ar", "کوردی": "ku"}
+UNITS = {"طن": {"ku": "تەن"}, "لتر": {"ku": "لیتر"}}
+CURRENCIES = {"دينار": {"ku": "دینار"}, "دولار": {"ku": "دۆلار"}}
 
 def load_offers():
     try:
-        with open(OFFERS_FILE, "r", encoding="utf-8") as f:
-            offers = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        offers = []
-    now = time.time()
-    offers = [o for o in offers if now - o.get("timestamp", now) < 86400]
-    with open(OFFERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(offers, f, ensure_ascii=False, indent=2)
-    return offers
+        with open(OFFERS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except:
+        return []
 
-def save_offer(offer):
-    offers = load_offers()
-    offers.append(offer)
-    with open(OFFERS_FILE, "w", encoding="utf-8") as f:
+def save_offers(offers):
+    with open(OFFERS_FILE, 'w', encoding='utf-8') as f:
         json.dump(offers, f, ensure_ascii=False, indent=2)
 
-
-# بدء البوت
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     keyboard = [["العربية", "کوردی"]]
-    await update.message.reply_text(
-"أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!"
-يرجى اختيار اللغة:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    )
+    reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    text = "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:"
+    await update.message.reply_text(text, reply_markup=reply_markup)
     return LANG_SELECT
 
-async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = update.message.text
-    if lang in LANGUAGES:
-        context.user_data["lang"] = LANGUAGES[lang]
-        context.user_data["offers"] = []
-        if lang == "ar":
-            keyboard = [["🛢️ بيع", "📝 طلب شراء"], ["📦 العروض", "📦 عروضي"], ["🔁 ابدأ من جديد"]]
-            msg = "اختر أحد الخيارات:"
-        else:
-            keyboard = [["🛢️ فرۆشتن", "📝 داواکاری"], ["📦 پیشکەشەکان", "📦 پێشکەشەکانی من"], ["🔁 دەستپێکردنەوە"]]
-            msg = "تکایە یەکێک هەلبژێرە:"
-        await update.message.reply_text(
-            msg,
-            reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        )
-        return MENU_SELECT
-    else:
-        await update.message.reply_text("يرجى اختيار لغة صالحة.")
+    if lang not in ["العربية", "کوردی"]:
         return LANG_SELECT
+    context.user_data["lang"] = lang
+    return await show_main_menu(update, context)
 
-# إعادة إلى القائمة
-async def back_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    return await set_language(update, context)
-
-# بدء عملية البيع أو الشراء (نفس الخطوات)
-async def start_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user_type = "sell" if "بيع" in update.message.text or "فرۆشتن" in update.message.text else "buy"
-    context.user_data["current_offer"] = {"type": user_type, "timestamp": time.time()}
-    lang = context.user_data.get("lang", "ar")
-    products = PRODUCTS_AR if lang == "ar" else PRODUCTS_KU
-    keyboard = [[p] for p in products]
-    msg = "اختر اسم المنتج:" if lang == "ar" else "ناوی بەرهەم هەلبژێرە:"
-    await update.message.reply_text(
-        msg,
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    )
-    return PRODUCT_NAME
-
-
-async def handle_product(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["product"] = update.message.text
-    if update.message.text == "بنزين" or update.message.text == "بەنزین":
-        context.user_data["ask_octane"] = True
-        msg = "ما هي نسبة الأوكتان؟" if context.user_data["lang"] == "ar" else "ڕێژەی ئۆکتان چەندە؟"
-        await update.message.reply_text(msg)
-        return OCTANE_LEVEL
-    return await ask_quantity(update, context)
-
-async def handle_octane(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["octane"] = update.message.text
-    return await ask_quantity(update, context)
-
-async def ask_quantity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    msg = "أدخل الكمية المطلوبة:" if context.user_data["lang"] == "ar" else "بڕی داواکراو بنووسە:"
-    await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
-    return QUANTITY
-
-async def handle_quantity(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["quantity"] = update.message.text
-    units = [["لتر", "طن"]] if context.user_data["lang"] == "ar" else [["لیتر", "تەن"]]
-    msg = "اختر الوحدة:" if context.user_data["lang"] == "ar" else "یەکە هەلبژێرە:"
-    await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(units, one_time_keyboard=True, resize_keyboard=True))
-    return UNIT
-
-async def handle_unit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["unit"] = update.message.text
-    msg = "أدخل السعر:" if context.user_data["lang"] == "ar" else "نرخ بنووسە:"
-    await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
-    return PRICE
-
-async def handle_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["price"] = update.message.text
-    currencies = [["دينار", "دولار"]] if context.user_data["lang"] == "ar" else [["دینار", "دۆلار"]]
-    msg = "اختر العملة:" if context.user_data["lang"] == "ar" else "دراو هەلبژێرە:"
-    await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(currencies, one_time_keyboard=True, resize_keyboard=True))
-    return CURRENCY
-
-async def handle_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["currency"] = update.message.text
-    msg = "أدخل رقم الهاتف للتواصل:" if context.user_data["lang"] == "ar" else "ژمارەی تەلەفۆن بنووسە:"
-    await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
-    return PHONE
-
-async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["phone"] = update.message.text
-    msg = "اسم التاجر أو المعمل:" if context.user_data["lang"] == "ar" else "ناوی تاجەر یان کارگە:"
-    await update.message.reply_text(msg)
-    return TRADER
-
-async def handle_trader(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["trader"] = update.message.text
-    msg = "سلفر (%):" if context.user_data["lang"] == "ar" else "سلفر (%):"
-    await update.message.reply_text(msg)
-    return SULFUR
-
-async def handle_sulfur(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["sulfur"] = update.message.text
-    msg = "طواف:" if context.user_data["lang"] == "ar" else "طواف:"
-    await update.message.reply_text(msg)
-    return DENSITY
-
-async def handle_density(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["density"] = update.message.text
-    msg = "أرسل صورة (اختياري)، أو اكتب /skip لتخطي:" if context.user_data["lang"] == "ar" else "وێنە بنێرە (ئەگەر ناتەوێ، بنووسە /skip):"
-    await update.message.reply_text(msg)
-    return PHOTO
-
-async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    photo_file = update.message.photo[-1].file_id if update.message.photo else None
-    context.user_data["current_offer"]["photo"] = photo_file
-    return await finalize_offer(update, context)
-
-async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["current_offer"]["photo"] = None
-    return await finalize_offer(update, context)
-
-
-async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    offer = context.user_data["current_offer"]
-    offer["user_id"] = update.effective_user.id
-    offer["timestamp"] = time.time()
-    save_offer(offer)
-
-    lang = context.user_data.get("lang", "ar")
-    details = f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:
-details = (
-    f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:\n"
-    f"📌 المنتج: {offer['product']}\n"
-    if "octane" in offer:
-        details += f"⛽ أوكتان: {offer['octane']}
-    f"⛽ أوكتان: {offer.get('octane', "")}\n"
-    details += f"⚖️ الكمية: {offer['quantity']} {offer['unit']}
-    f"⚖️ الكمية: {offer['quantity']} {offer['unit']}\n"
-    details += f"💰 السعر: {offer['price']} {offer['currency']}
-    f"💰 السعر: {offer['price']} {offer['currency']}\n"
-    details += f"☎️ الهاتف: {offer['phone']}
-    f"☎️ الهاتف: {offer['phone']}\n"
-    details += f"🏭 التاجر/المعمل: {offer['trader']}
-    f"🏭 التاجر/المعمل: {offer['trader']}\n"
-    details += f"🔥 سلفر: {offer['sulfur']}
-    f"🔥 سلفر: {offer['sulfur']}\n"
-    details += f"💧 طواف: {offer['density']}"
-    f"💧 طواف: {offer['density']}"
-)
-        await update.message.reply_photo(offer["photo"], caption=details)
+async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    keyboard = [["🛒 بيع", "📝 طلب شراء"], ["📦 عروضي", "📢 العروض"], ["♻️ ابدأ من جديد"]]
+    if lang == "کوردی":
+        keyboard = [["🛒 فرۆشتن", "📝 داواکردنی بەرهەم"], ["📦 پیشکەشەکانم", "📢 پیشکەشەکان"], ["♻️ دەستپێکردنەوە"]]
+        msg = "تکایە هەڵبژێرە:"
     else:
-        await update.message.reply_text(details)
+        msg = "اختر أحد الخيارات:"
+    await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+    return MENU_SELECT
 
-    return await back_to_menu(update, context)
 
-# عرض العروض حسب النوع
-async def show_filtered_offers(update: Update, context: ContextTypes.DEFAULT_TYPE, offer_type=None):
-    lang = context.user_data.get("lang", "ar")
+async def menu_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    text = update.message.text
+
+    if text in ["🛒 بيع", "🛒 فرۆشتن"]:
+        products = list(PRODUCTS.keys())
+        if lang == "کوردی":
+            products = [PRODUCTS[p]["ku"] for p in PRODUCTS]
+        keyboard = [products[i:i+2] for i in range(0, len(products), 2)]
+        msg = "اختر نوع المنتج:" if lang == "العربية" else "جۆری بەرهەم هەڵبژێرە:"
+        await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+        return SELL_PRODUCT
+
+    if text in ["♻️ ابدأ من جديد", "♻️ دەستپێکردنەوە"]:
+        return await start(update, context)
+
+    if text in ["📝 طلب شراء", "📝 داواکردنی بەرهەم"]:
+        return await buy_start(update, context)
+
+    if text in ["📦 عروضي", "📦 پیشکەشەکانم"]:
+        return await my_offers(update, context)
+
+    return MENU_SELECT
+
+async def sell_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    product = update.message.text
+    if lang == "کوردی":
+        for ar, ku in PRODUCTS.items():
+            if product == ku["ku"]:
+                product = ar
+                break
+    context.user_data["product"] = product
+
+    if "بنزين" in product or "بەنزین" in product:
+        msg = "أدخل نسبة الأوكتان:" if lang == "العربية" else "رێژەی ئۆکتان بنووسە:"
+        await update.message.reply_text(msg)
+        return SELL_OCTANE
+    else:
+        msg = "أدخل الكمية:" if lang == "العربية" else "بڕی بەرهەم بنووسە:"
+        await update.message.reply_text(msg)
+        return SELL_QUANTITY
+
+async def sell_octane(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["octane"] = update.message.text
+    lang = context.user_data.get("lang", "العربية")
+    msg = "أدخل الكمية:" if lang == "العربية" else "بڕی بەرهەم بنووسە:"
+    await update.message.reply_text(msg)
+    return SELL_QUANTITY
+
+async def sell_quantity(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["quantity"] = update.message.text
+    lang = context.user_data.get("lang", "العربية")
+    keyboard = [["طن", "لتر"]] if lang == "العربية" else [["تەن", "لیتر"]]
+    msg = "اختر الوحدة:" if lang == "العربية" else "یەکەی بەرهەم هەڵبژێرە:"
+    await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+    return SELL_UNIT
+
+async def sell_unit(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["unit"] = update.message.text
+    lang = context.user_data.get("lang", "العربية")
+    msg = "أدخل السعر:" if lang == "العربية" else "نرخی بەرهەم بنووسە:"
+    await update.message.reply_text(msg)
+    return SELL_PRICE
+
+async def sell_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["price"] = update.message.text
+    lang = context.user_data.get("lang", "العربية")
+    keyboard = [["دينار", "دولار"]] if lang == "العربية" else [["دینار", "دۆلار"]]
+    msg = "اختر العملة:" if lang == "العربية" else "جۆری دراو هەڵبژێرە:"
+    await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+    return SELL_CURRENCY
+
+async def sell_currency(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["currency"] = update.message.text
+    lang = context.user_data.get("lang", "العربية")
+    msg = "أدخل رقم الهاتف:" if lang == "العربية" else "ژمارەی تەلەفۆن بنووسە:"
+    await update.message.reply_text(msg)
+    return SELL_PHONE
+
+async def sell_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["phone"] = update.message.text
+    lang = context.user_data.get("lang", "العربية")
+    msg = "أرسل صورة المنتج أو اضغط /skip للتخطي:" if lang == "العربية" else "وێنە بنێرە یان /skip بنووسە:"
+    await update.message.reply_text(msg)
+    return SELL_PHOTO
+
+async def sell_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["photo"] = update.message.photo[-1].file_id
+    return await finalize_offer(update, context)
+
+async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["photo"] = None
+    return await finalize_offer(update, context)
+
+async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    data = context.user_data
+# ← أضف إغلاق لقوس مفقود أو استبدله بصيغة متعددة الأسطر
+        "user_id": user_id,
+        "lang": data.get("lang"),
+        "product": data.get("product"),
+        "octane": data.get("octane"),
+        "quantity": data.get("quantity"),
+        "unit": data.get("unit"),
+        "price": data.get("price"),
+        "currency": data.get("currency"),
+        "phone": data.get("phone"),
+        "photo": data.get("photo"),
+        "timestamp": time.time()
+    }
     offers = load_offers()
-    if offer_type:
-        offers = [o for o in offers if o.get("type") == offer_type]
-    if not offers:
-        msg = "لا توجد عروض حالياً." if lang == "ar" else "هیچ پێشکەشێک نییە."
-        await update.message.reply_text(msg)
-        return MENU_SELECT
-    for offer in offers:
-        details = f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:
-details = (
-    f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:\n"
-    f"📌 المنتج: {offer['product']}\n"
-        if "octane" in offer:
-            details += f"⛽ أوكتان: {offer['octane']}
-    f"⛽ أوكتان: {offer.get('octane', "")}\n"
-        details += f"⚖️ الكمية: {offer['quantity']} {offer['unit']}
-    f"⚖️ الكمية: {offer['quantity']} {offer['unit']}\n"
-        details += f"💰 السعر: {offer['price']} {offer['currency']}
-    f"💰 السعر: {offer['price']} {offer['currency']}\n"
-        details += f"☎️ الهاتف: {offer['phone']}
-    f"☎️ الهاتف: {offer['phone']}\n"
-        details += f"🏭 التاجر/المعمل: {offer['trader']}
-    f"🏭 التاجر/المعمل: {offer['trader']}\n"
-        details += f"🔥 سلفر: {offer['sulfur']}
-    f"🔥 سلفر: {offer['sulfur']}\n"
-        details += f"💧 طواف: {offer['density']}"
-    f"💧 طواف: {offer['density']}"
-)
+    offers.append(offer)
+    save_offers(offers)
+    lang = data.get("lang", "العربية")
+    msg = "✅ تم حفظ العرض بنجاح!" if lang == "العربية" else "✅ پێشکەشەکە تۆمار کرا!"
+    await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
+    return await show_main_menu(update, context)
+
+
+async def buy_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    products = list(PRODUCTS.keys())
+    if lang == "کوردی":
+        products = [PRODUCTS[p]["ku"] for p in PRODUCTS]
+    keyboard = [products[i:i+2] for i in range(0, len(products), 2)]
+    msg = "اختر المنتج لعرض العروض:" if lang == "العربية" else "جۆری بەرهەم هەڵبژێرە بۆ پیشکەشەکان:"
+    await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+    return BUY_SELECT
+
+async def buy_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    selected = update.message.text
+    if lang == "کوردی":
+        for ar, ku in PRODUCTS.items():
+            if selected == ku["ku"]:
+                selected = ar
+                break
+    offers = load_offers()
+    matched = [o for o in offers if o["product"] == selected]
+    if not matched:
+        msg = "لا توجد عروض حالياً." if lang == "العربية" else "هیچ پێشکەشێک نییە."
+        await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
+        return await show_main_menu(update, context)
+
+    for offer in matched:
+        msg = f"{offer['product']}"
+        if offer.get("octane"):
+            msg += f"\n⛽ أوكتان: {offer['octane']}"
+        msg += f"\n📦 الكمية: {offer['quantity']} {offer['unit']}"
+        msg += f"\n💰 السعر: {offer['price']} {offer['currency']}"
+        msg += f"\n☎️ الهاتف: {offer['phone']}"
+        if offer.get("photo"):
+            await update.message.reply_photo(offer["photo"], caption=msg)
         else:
-            await update.message.reply_text(details)
+            await update.message.reply_text(msg)
+    return await show_main_menu(update, context)
+
+async def my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    lang = context.user_data.get("lang", "العربية")
+    offers = load_offers()
+    my = [o for o in offers if o["user_id"] == user_id]
+    if not my:
+        msg = "لا تملك عروض حالياً." if lang == "العربية" else "هیچ پێشکەشێکت نییە."
+        await update.message.reply_text(msg)
+        return await show_main_menu(update, context)
+
+    for idx, offer in enumerate(my):
+        msg = f"🔢 رقم العرض: {idx + 1}\n🛢️ المنتج: {offer['product']}"
+        if offer.get("octane"):
+            msg += f"\n⛽ أوكتان: {offer['octane']}"
+        msg += f"\n📦 الكمية: {offer['quantity']} {offer['unit']}"
+        msg += f"\n💰 السعر: {offer['price']} {offer['currency']}"
+        msg += f"\n☎️ الهاتف: {offer['phone']}"
+# ← إغلاق f-string أو القوس مفقود
+            InlineKeyboardButton("❌ حذف هذا العرض", callback_data=f"delete_{idx}")
+        )
+        if offer.get("photo"):
+            await update.message.reply_photo(offer["photo"], caption=msg, reply_markup=btn)
+        else:
+            await update.message.reply_text(msg, reply_markup=btn)
     return MENU_SELECT
 
-# عرض العروض الخاصة بالمستخدم فقط
-async def show_my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    lang = context.user_data.get("lang", "ar")
-    offers = [o for o in load_offers() if o.get("user_id") == user_id]
-    if not offers:
-        msg = "لا توجد عروض مسجلة باسمك." if lang == "ar" else "هیچ پێشکەشی تایبەتی تۆ نییە."
-        await update.message.reply_text(msg)
-        return MENU_SELECT
-    for offer in offers:
-        details = f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:
-details = (
-    f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:\n"
-    f"📌 المنتج: {offer['product']}\n"
-        if "octane" in offer:
-            details += f"⛽ أوكتان: {offer['octane']}
-    f"⛽ أوكتان: {offer.get('octane', "")}\n"
-        details += f"⚖️ الكمية: {offer['quantity']} {offer['unit']}
-    f"⚖️ الكمية: {offer['quantity']} {offer['unit']}\n"
-        details += f"💰 السعر: {offer['price']} {offer['currency']}
-    f"💰 السعر: {offer['price']} {offer['currency']}\n"
-        details += f"☎️ الهاتف: {offer['phone']}
-    f"☎️ الهاتف: {offer['phone']}\n"
-        details += f"🏭 التاجر/المعمل: {offer['trader']}
-    f"🏭 التاجر/المعمل: {offer['trader']}\n"
-        details += f"🔥 سلفر: {offer['sulfur']}
-    f"🔥 سلفر: {offer['sulfur']}\n"
-        details += f"💧 طواف: {offer['density']}"
-    f"💧 طواف: {offer['density']}"
-)
-        else:
-            await update.message.reply_text(details)
+async def handle_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    index = int(query.data.split("_")[1])
+    offers = load_offers()
+    user_offers = [o for o in offers if o["user_id"] == user_id]
+    if index >= len(user_offers):
+        await query.edit_message_text("العرض غير موجود.")
+        return
+    offer_to_delete = user_offers[index]
+    offers.remove(offer_to_delete)
+    save_offers(offers)
+    await query.edit_message_text("✅ تم حذف العرض.")
     return MENU_SELECT
 
 
-# دالة الإنهاء
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("تم الإلغاء.", reply_markup=ReplyKeyboardRemove())
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    msg = "تم إلغاء العملية." if lang == "العربية" else "کارەکە وەستا."
+    await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
-    conv_handler = ConversationHandler(
+# ← مشكلة إغلاق f-string أو تنسيق
         entry_points=[CommandHandler("start", start)],
-        states={
+# ← تأكد من صياغة العبارة
             LANG_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_language)],
-            MENU_SELECT: [
-                MessageHandler(filters.Regex("^🛢️ بيع|🛢️ فرۆشتن$"), start_offer),
-                MessageHandler(filters.Regex("^📝 طلب شراء|📝 داواکاری$"), start_offer),
-                MessageHandler(filters.Regex("^📦 العروض|📦 پیشکەشەکان$"), lambda u, c: show_filtered_offers(u, c, None)),
-                MessageHandler(filters.Regex("^📦 عروضي|📦 پێشکەشەکانی من$"), show_my_offers),
-                MessageHandler(filters.Regex("^🔁 ابدأ من جديد|🔁 دەستپێکردنەوە$"), back_to_menu)
-            ],
-            PRODUCT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_product)],
-            OCTANE_LEVEL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_octane)],
-            QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_quantity)],
-            UNIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_unit)],
-            PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_price)],
-            CURRENCY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_currency)],
-            PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone)],
-            TRADER: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_trader)],
-            SULFUR: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_sulfur)],
-            DENSITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_density)],
-            PHOTO: [
-                MessageHandler(filters.PHOTO, handle_photo),
+            MENU_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, menu_select)],
+            SELL_PRODUCT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_product)],
+            SELL_OCTANE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_octane)],
+            SELL_QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_quantity)],
+            SELL_UNIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_unit)],
+            SELL_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_price)],
+            SELL_CURRENCY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_currency)],
+            SELL_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_phone)],
+# ← f-string غير مكتمل
+                MessageHandler(filters.PHOTO, sell_photo),
                 CommandHandler("skip", skip_photo)
-            ]
+            ],
+            BUY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, buy_select)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True
     )
 
     app.add_handler(conv_handler)
+    app.add_handler(MessageHandler(filters.Regex("^(📝 طلب شراء|📝 داواکردنی بەرهەم)$"), buy_start))
+    app.add_handler(MessageHandler(filters.Regex("^(📦 عروضي|📦 پیشکەشەکانم)$"), my_offers))
+    app.add_handler(CallbackQueryHandler(handle_delete_callback, pattern="^delete_"))
+
     app.run_polling()
 
 if __name__ == "__main__":
     main()
+
+
+
+# Start buy process (same as sell)
+async def start_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["type"] = "buy"
+    return await ask_product(update, context)
+
+# عروض الشراء
+async def show_buy_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return await show_filtered_offers(update, context, offer_type="buy")
+
+# عروض البيع
+async def show_sell_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return await show_filtered_offers(update, context, offer_type="sell")
+
+# عند الضغط على زر العروض
+async def ask_offer_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "العربية")
+    if lang == "کوردی":
+        keyboard = [["🛒 داواکارییەکانی کڕین", "✅ پیشکەشەکانی فرۆشتن"]]
+    else:
+        keyboard = [["🛒 طلبات الشراء", "✅ عروض البيع"]]
+# ← جملة غير مغلقة أو تنسيق
+        "📦 اختر نوع العروض:" if lang == "العربية" else "📦 جۆری پیشکەشەکان هەڵبژێرە:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return MENU_SELECT
