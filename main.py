@@ -48,7 +48,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     keyboard = [["العربية", "کوردی"]]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    text = "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!
+    text = "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!"
 يرجى اختيار اللغة:"
     await update.message.reply_text(text, reply_markup=reply_markup)
     return LANG_SELECT
