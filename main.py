@@ -2,24 +2,21 @@
 import logging
 import json
 import time
-import asyncio
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler, CallbackQueryHandler
 
 BOT_TOKEN = "YOUR_BOT_TOKEN"
 OFFERS_FILE = "offers.json"
 
-# تهيئة تسجيل الأحداث
+# Logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# مراحل المحادثة
-(LANG_SELECT, MENU_SELECT,
- SELL_PRODUCT, SELL_OCTANE, SELL_QUANTITY, SELL_UNIT, SELL_PRICE,
- SELL_CURRENCY, SELL_PHONE, SELL_PHOTO, BUY_SELECT, OFFERS_MENU,
- DELETE_OFFER_CONFIRM, EDIT_OFFER_SELECT) = range(14)
+# States
+(LANG_SELECT, MENU_SELECT, SELL_PRODUCT, SELL_OCTANE, SELL_QUANTITY, SELL_UNIT, SELL_PRICE, SELL_CURRENCY,
+ SELL_PHONE, SELL_PHOTO, BUY_SELECT) = range(11)
 
-# المنتجات بالرموز
+# Products with Emojis
 PRODUCTS = {
     "🛢️ كاز معمل": {"ku": "🛢️ گازۆیل کارگە"},
     "⚗️ نافتا": {"ku": "⚗️ نافتا"},
@@ -48,8 +45,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     keyboard = [["العربية", "کوردی"]]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    text = "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!"
-يرجى اختيار اللغة:"
+    text = "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:"
     await update.message.reply_text(text, reply_markup=reply_markup)
     return LANG_SELECT
 
@@ -71,6 +67,7 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(msg, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
     return MENU_SELECT
 
+
 async def menu_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = context.user_data.get("lang", "العربية")
     text = update.message.text
@@ -87,7 +84,12 @@ async def menu_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text in ["♻️ ابدأ من جديد", "♻️ دەستپێکردنەوە"]:
         return await start(update, context)
 
-    await update.message.reply_text("سيتم تنفيذ هذا الخيار قريباً...")
+    if text in ["🔍 شراء", "🔍 کڕین"]:
+        return await buy_start(update, context)
+
+    if text in ["📦 عروضي", "📦 پیشکەشەکانم"]:
+        return await my_offers(update, context)
+
     return MENU_SELECT
 
 async def sell_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -181,9 +183,10 @@ async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     offers.append(offer)
     save_offers(offers)
     lang = data.get("lang", "العربية")
-    msg = "✅ تم حفظ العرض بنجاح!" if lang == "العربية" else "✅ پێشکەشەکە بەسەرکەوتوویی تۆمار کرا!"
+    msg = "✅ تم حفظ العرض بنجاح!" if lang == "العربية" else "✅ پێشکەشەکە تۆمار کرا!"
     await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
     return await show_main_menu(update, context)
+
 
 async def buy_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = context.user_data.get("lang", "العربية")
@@ -213,14 +216,10 @@ async def buy_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for offer in matched:
         msg = f"{offer['product']}"
         if offer.get("octane"):
-            msg += f"
-⛽ أوكتان: {offer['octane']}"
-        msg += f"
-📦 الكمية: {offer['quantity']} {offer['unit']}"
-        msg += f"
-💰 السعر: {offer['price']} {offer['currency']}"
-        msg += f"
-☎️ الهاتف: {offer['phone']}"
+            msg += f"\n⛽ أوكتان: {offer['octane']}"
+        msg += f"\n📦 الكمية: {offer['quantity']} {offer['unit']}"
+        msg += f"\n💰 السعر: {offer['price']} {offer['currency']}"
+        msg += f"\n☎️ الهاتف: {offer['phone']}"
         if offer.get("photo"):
             await update.message.reply_photo(offer["photo"], caption=msg)
         else:
@@ -238,17 +237,12 @@ async def my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await show_main_menu(update, context)
 
     for idx, offer in enumerate(my):
-        msg = f"🔢 رقم العرض: {idx + 1}
-🛢️ المنتج: {offer['product']}"
+        msg = f"🔢 رقم العرض: {idx + 1}\n🛢️ المنتج: {offer['product']}"
         if offer.get("octane"):
-            msg += f"
-⛽ أوكتان: {offer['octane']}"
-        msg += f"
-📦 الكمية: {offer['quantity']} {offer['unit']}"
-        msg += f"
-💰 السعر: {offer['price']} {offer['currency']}"
-        msg += f"
-☎️ الهاتف: {offer['phone']}"
+            msg += f"\n⛽ أوكتان: {offer['octane']}"
+        msg += f"\n📦 الكمية: {offer['quantity']} {offer['unit']}"
+        msg += f"\n💰 السعر: {offer['price']} {offer['currency']}"
+        msg += f"\n☎️ الهاتف: {offer['phone']}"
         btn = InlineKeyboardMarkup.from_button(
             InlineKeyboardButton("❌ حذف هذا العرض", callback_data=f"delete_{idx}")
         )
@@ -273,6 +267,7 @@ async def handle_delete_callback(update: Update, context: ContextTypes.DEFAULT_T
     save_offers(offers)
     await query.edit_message_text("✅ تم حذف العرض.")
     return MENU_SELECT
+
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = context.user_data.get("lang", "العربية")
