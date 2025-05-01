@@ -1,87 +1,59 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-import os, json
+import os
 
-TOKEN = os.getenv("TOKEN")  # سيتم إدخاله من Railway كمتغير بيئة
+# استدعاء التوكن من متغير البيئة
+TOKEN = os.getenv("TOKEN")
 
+# إنشاء الخطوات والبيانات المؤقتة
 user_step = {}
-user_offer = {}
+user_data = {}
 
+# رسالة الترحيب
 def start(update: Update, context: CallbackContext):
-    keyboard = [['أضف عرض'], ['شاهد العروض']]
-    markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    update.message.reply_text("أهلاً بك في سوق النفط والعلف.\nاختر من الخيارات:", reply_markup=markup)
+    keyboard = [['أضف عرض'], ['شاهد العروض'], ['ابدأ من جديد']]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    update.message.reply_text(
+        "أهلاً وسهلاً بكم في السوق المفتوح في كردستان والعراق!\n"
+        "يمكنك إضافة عرض جديد أو مشاهدة العروض الحالية.",
+        reply_markup=reply_markup
+    )
+    user_step[update.message.chat_id] = None
 
+# التعامل مع الرسائل العامة
 def handle_message(update: Update, context: CallbackContext):
     chat_id = update.message.chat_id
     text = update.message.text
 
-    if text == 'أضف عرض':
-        user_step[chat_id] = 'product'
-        user_offer[chat_id] = {}
-        update.message.reply_text("أدخل اسم المنتج:")
+    if text == "أضف عرض":
+        user_step[chat_id] = "product_name"
+        user_data[chat_id] = {}
+        update.message.reply_text("يرجى كتابة اسم المنتج:")
     
-    elif chat_id in user_step:
-        step = user_step[chat_id]
-        if step == 'product':
-            user_offer[chat_id]['product'] = text
-            user_step[chat_id] = 'quantity'
-            update.message.reply_text("أدخل الكمية:")
-        elif step == 'quantity':
-            user_offer[chat_id]['quantity'] = text
-            user_step[chat_id] = 'price'
-            update.message.reply_text("أدخل السعر:")
-        elif step == 'price':
-            user_offer[chat_id]['price'] = text
-            user_step[chat_id] = 'currency'
-            update.message.reply_text("أدخل العملة (مثلاً: دينار):")
-        elif step == 'currency':
-            user_offer[chat_id]['currency'] = text
-            user_step[chat_id] = 'phone'
-            update.message.reply_text("أدخل رقم الهاتف:")
-        elif step == 'phone':
-            user_offer[chat_id]['phone'] = text
-            save_offer(user_offer[chat_id])
-            update.message.reply_text("تم حفظ العرض بنجاح!")
-            del user_step[chat_id]
-            del user_offer[chat_id]
-    elif text == 'شاهد العروض':
-        offers = load_offers()
-        if not offers:
-            update.message.reply_text("لا توجد عروض حالياً.")
-        else:
-            for offer in offers[-5:]:
-                msg = f"المنتج: {offer['product']}\nالكمية: {offer['quantity']}\nالسعر: {offer['price']} {offer['currency']}\nالهاتف: {offer['phone']}"
-                update.message.reply_text(msg)
+    elif text == "شاهد العروض":
+        update.message.reply_text("سيتم عرض العروض قريباً...")
+    
+    elif text == "ابدأ من جديد":
+        user_step[chat_id] = None
+        user_data[chat_id] = {}
+        update.message.reply_text("تمت إعادة التهيئة. يمكنك البدء من جديد باستخدام الأزرار.")
+
     else:
-        update.message.reply_text("اختر خيارًا من القائمة.")
-
-def save_offer(offer):
-    try:
-        with open('offers.json', 'r') as f:
-            offers = json.load(f)
-    except:
-        offers = []
-
-    offers.append(offer)
-
-    with open('offers.json', 'w') as f:
-        json.dump(offers, f, ensure_ascii=False, indent=2)
-
-def load_offers():
-    try:
-        with open('offers.json', 'r') as f:
-            return json.load(f)
-    except:
-        return []
+        step = user_step.get(chat_id)
+        if step == "product_name":
+            user_data[chat_id]["product"] = text
+            update.message.reply_text("المنتج تم تسجيله. سيتم الآن استكمال باقي البيانات...")
+            # الخطوات التالية ستضاف لاحقًا
 
 def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
-    dp.add_handler(CommandHandler('start', start))
+
+    dp.add_handler(CommandHandler("start", start))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+
     updater.start_polling()
     updater.idle()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
