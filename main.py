@@ -229,8 +229,7 @@ async def skip_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def receive_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """User sent an image; store its file_id."""
-    photo_file = await update.message.photo[-1].get_file()
-    context.user_data['new_offer']['image'] = photo_file.file_id
+    context.user_data['new_offer']['image'] = update.message.photo[-1].file_id
     return await finalize_offer(update, context)
 
 async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
