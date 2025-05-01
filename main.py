@@ -248,9 +248,9 @@ async def my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg += f"\n💰 السعر: {offer['price']} {offer['currency']}"
         msg += f"\n☎️ الهاتف: {offer['phone']}"
 # ← إغلاق f-string أو القوس مفقود
-            InlineKeyboardButton("❌ حذف هذا العرض", callback_data=f"delete_{idx}")
-        )
-        if offer.get("photo"):
+        btn = InlineKeyboardMarkup([
+            [InlineKeyboardButton("❌ حذف هذا العرض", callback_data=f"delete_{idx}")]
+        ])
             await update.message.reply_photo(offer["photo"], caption=msg, reply_markup=btn)
         else:
             await update.message.reply_text(msg, reply_markup=btn)
