@@ -13,11 +13,14 @@ BOT_TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
 # ← نفس المشكلة، تأكد من تبعيته لدالة
 
 # States
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["العربية", "کوردی"]]
- SELL_PHONE, SELL_PHOTO, BUY_SELECT) = range(11)
+    await update.message.reply_text(
+        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    )
 
 # Products with Emojis
-    await update.message.reply_text(
         "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     )
