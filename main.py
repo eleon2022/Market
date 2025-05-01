@@ -187,25 +187,25 @@ async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     lang = context.user_data.get("lang", "ar")
     details = f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:
-"
-    details += f"📌 المنتج: {offer['product']}
-"
+details = (
+    f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:\n"
+    f"📌 المنتج: {offer['product']}\n"
     if "octane" in offer:
         details += f"⛽ أوكتان: {offer['octane']}
-"
+    f"⛽ أوكتان: {offer.get('octane', "")}\n"
     details += f"⚖️ الكمية: {offer['quantity']} {offer['unit']}
-"
+    f"⚖️ الكمية: {offer['quantity']} {offer['unit']}\n"
     details += f"💰 السعر: {offer['price']} {offer['currency']}
-"
+    f"💰 السعر: {offer['price']} {offer['currency']}\n"
     details += f"☎️ الهاتف: {offer['phone']}
-"
+    f"☎️ الهاتف: {offer['phone']}\n"
     details += f"🏭 التاجر/المعمل: {offer['trader']}
-"
+    f"🏭 التاجر/المعمل: {offer['trader']}\n"
     details += f"🔥 سلفر: {offer['sulfur']}
-"
+    f"🔥 سلفر: {offer['sulfur']}\n"
     details += f"💧 طواف: {offer['density']}"
-
-    if offer.get("photo"):
+    f"💧 طواف: {offer['density']}"
+)
         await update.message.reply_photo(offer["photo"], caption=details)
     else:
         await update.message.reply_text(details)
@@ -224,25 +224,25 @@ async def show_filtered_offers(update: Update, context: ContextTypes.DEFAULT_TYP
         return MENU_SELECT
     for offer in offers:
         details = f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:
-"
-        details += f"📌 المنتج: {offer['product']}
-"
+details = (
+    f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:\n"
+    f"📌 المنتج: {offer['product']}\n"
         if "octane" in offer:
             details += f"⛽ أوكتان: {offer['octane']}
-"
+    f"⛽ أوكتان: {offer.get('octane', "")}\n"
         details += f"⚖️ الكمية: {offer['quantity']} {offer['unit']}
-"
+    f"⚖️ الكمية: {offer['quantity']} {offer['unit']}\n"
         details += f"💰 السعر: {offer['price']} {offer['currency']}
-"
+    f"💰 السعر: {offer['price']} {offer['currency']}\n"
         details += f"☎️ الهاتف: {offer['phone']}
-"
+    f"☎️ الهاتف: {offer['phone']}\n"
         details += f"🏭 التاجر/المعمل: {offer['trader']}
-"
+    f"🏭 التاجر/المعمل: {offer['trader']}\n"
         details += f"🔥 سلفر: {offer['sulfur']}
-"
+    f"🔥 سلفر: {offer['sulfur']}\n"
         details += f"💧 طواف: {offer['density']}"
-        if offer.get("photo"):
-            await update.message.reply_photo(offer["photo"], caption=details)
+    f"💧 طواف: {offer['density']}"
+)
         else:
             await update.message.reply_text(details)
     return MENU_SELECT
@@ -258,25 +258,25 @@ async def show_my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return MENU_SELECT
     for offer in offers:
         details = f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:
-"
-        details += f"📌 المنتج: {offer['product']}
-"
+details = (
+    f"📦 {'عرض بيع' if offer['type'] == 'sell' else 'طلب شراء'}:\n"
+    f"📌 المنتج: {offer['product']}\n"
         if "octane" in offer:
             details += f"⛽ أوكتان: {offer['octane']}
-"
+    f"⛽ أوكتان: {offer.get('octane', "")}\n"
         details += f"⚖️ الكمية: {offer['quantity']} {offer['unit']}
-"
+    f"⚖️ الكمية: {offer['quantity']} {offer['unit']}\n"
         details += f"💰 السعر: {offer['price']} {offer['currency']}
-"
+    f"💰 السعر: {offer['price']} {offer['currency']}\n"
         details += f"☎️ الهاتف: {offer['phone']}
-"
+    f"☎️ الهاتف: {offer['phone']}\n"
         details += f"🏭 التاجر/المعمل: {offer['trader']}
-"
+    f"🏭 التاجر/المعمل: {offer['trader']}\n"
         details += f"🔥 سلفر: {offer['sulfur']}
-"
+    f"🔥 سلفر: {offer['sulfur']}\n"
         details += f"💧 طواف: {offer['density']}"
-        if offer.get("photo"):
-            await update.message.reply_photo(offer["photo"], caption=details)
+    f"💧 طواف: {offer['density']}"
+)
         else:
             await update.message.reply_text(details)
     return MENU_SELECT
