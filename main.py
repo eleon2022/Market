@@ -21,10 +21,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # Products with Emojis
-        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    )
-    "🛢️ كاز معمل": {"ku": "🛢️ گازۆیل کارگە"},
     "⚗️ نافتا": {"ku": "⚗️ نافتا"},
     "⛽ بنزين": {"ku": "⛽ بەنزین"},
     "🔥 كاز فلاش": {"ku": "🔥 گازۆیل فلاش"},
