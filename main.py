@@ -13,16 +13,15 @@ BOT_TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
 # ← نفس المشكلة، تأكد من تبعيته لدالة
 
 # States
-# FIXED: كان السطر خارج دالة
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["العربية", "کوردی"]]
-    SELL_PHONE, SELL_PHOTO, BUY_SELECT = range(3)
-        # Products with Emojis
+ SELL_PHONE, SELL_PHOTO, BUY_SELECT) = range(11)
+
+# Products with Emojis
     await update.message.reply_text(
-    "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
-    reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     )
-#     "🛢️ كاز معمل": {"ku": "🛢️ گازۆیل کارگە"},
+    "🛢️ كاز معمل": {"ku": "🛢️ گازۆیل کارگە"},
     "⚗️ نافتا": {"ku": "⚗️ نافتا"},
     "⛽ بنزين": {"ku": "⛽ بەنزین"},
     "🔥 كاز فلاش": {"ku": "🔥 گازۆیل فلاش"},
@@ -46,11 +45,12 @@ def save_offers(offers):
         json.dump(offers, f, ensure_ascii=False, indent=2)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     keyboard = [["العربية", "کوردی"]]
-    await update.message.reply_text(
-        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    )
+    reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    text = "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:"
+    await update.message.reply_text(text, reply_markup=reply_markup)
+    return LANG_SELECT
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = update.message.text
@@ -177,7 +177,6 @@ async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "quantity": data.get("quantity"),
         "unit": data.get("unit"),
         "price": data.get("price"),
-    offer = {
         "currency": data.get("currency"),
         "phone": data.get("phone"),
         "photo": data.get("photo"),
@@ -248,9 +247,9 @@ async def my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg += f"\n💰 السعر: {offer['price']} {offer['currency']}"
         msg += f"\n☎️ الهاتف: {offer['phone']}"
 # ← إغلاق f-string أو القوس مفقود
-        btn = InlineKeyboardMarkup([
-            [InlineKeyboardButton("❌ حذف هذا العرض", callback_data=f"delete_{idx}")]
-        ])
+            InlineKeyboardButton("❌ حذف هذا العرض", callback_data=f"delete_{idx}")
+        )
+        if offer.get("photo"):
             await update.message.reply_photo(offer["photo"], caption=msg, reply_markup=btn)
         else:
             await update.message.reply_text(msg, reply_markup=btn)
@@ -295,11 +294,10 @@ def main():
             SELL_CURRENCY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_currency)],
             SELL_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_phone)],
 # ← f-string غير مكتمل
-            SELL_PHOTO: [
                 MessageHandler(filters.PHOTO, sell_photo),
-                CommandHandler("skip", skip_photo),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, invalid_photo_input)
+                CommandHandler("skip", skip_photo)
             ],
+            BUY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, buy_select)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True
@@ -318,12 +316,9 @@ if __name__ == "__main__":
 
 
 # Start buy process (same as sell)
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["العربية", "کوردی"]]
-    await update.message.reply_text(
-        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    )
+async def start_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["type"] = "buy"
+    return await ask_product(update, context)
 
 # عروض الشراء
 async def show_buy_offers(update: Update, context: ContextTypes.DEFAULT_TYPE):
