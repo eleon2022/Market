@@ -15,14 +15,14 @@ BOT_TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
 # States
 # FIXED: كان السطر خارج دالة
 keyboard = [["العربية", "کوردی"]]
- SELL_PHONE, SELL_PHOTO, BUY_SELECT) = range(11)
+SELL_PHONE, SELL_PHOTO, BUY_SELECT = range(3)
 
 # Products with Emojis
     await update.message.reply_text(
         "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!\nيرجى اختيار اللغة:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     )
-    "🛢️ كاز معمل": {"ku": "🛢️ گازۆیل کارگە"},
+#     "🛢️ كاز معمل": {"ku": "🛢️ گازۆیل کارگە"},
     "⚗️ نافتا": {"ku": "⚗️ نافتا"},
     "⛽ بنزين": {"ku": "⛽ بەنزین"},
     "🔥 كاز فلاش": {"ku": "🔥 گازۆیل فلاش"},
