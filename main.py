@@ -291,18 +291,18 @@ def main():
             SELL_OCTANE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_octane)],
             SELL_QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_quantity)],
             SELL_UNIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_unit)],
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            SELL_PHOTO: [
-                MessageHandler(filters.PHOTO, sell_photo),
-                CommandHandler("skip", skip_photo),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, invalid_photo_input)
-            ]
-        },
-        fallbacks=[CommandHandler("cancel", cancel)],
-        allow_reentry=True
-    )
+conv_handler = ConversationHandler(
+entry_points=[CommandHandler("start", start)],
+states={
+SELL_PHOTO: [
+MessageHandler(filters.PHOTO, sell_photo),
+CommandHandler("skip", skip_photo),
+MessageHandler(filters.TEXT & ~filters.COMMAND, invalid_photo_input)
+]
+},
+fallbacks=[CommandHandler("cancel", cancel)],
+allow_reentry=True
+)
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True
     )
