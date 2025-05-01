@@ -293,7 +293,6 @@ def main():
             SELL_UNIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_unit)],
 conv_handler = ConversationHandler(
 entry_points=[CommandHandler("start", start)],
-states={
 SELL_PHOTO: [
 MessageHandler(filters.PHOTO, sell_photo),
 CommandHandler("skip", skip_photo),
