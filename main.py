@@ -172,6 +172,7 @@ async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "user_id": user_id,
         "lang": data.get("lang"),
         "product": data.get("product"),
+    offer = {
         "octane": data.get("octane"),
         "quantity": data.get("quantity"),
         "unit": data.get("unit"),
