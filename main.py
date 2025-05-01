@@ -56,7 +56,7 @@ def save_offer(offer):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     keyboard = [["العربية", "کوردی"]]
     await update.message.reply_text(
-        "أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!
+"أهلاً وسهلاً بكم في بورصة نفط كردستان والعراق!"
 يرجى اختيار اللغة:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     )
