@@ -228,10 +228,17 @@ async def skip_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return await finalize_offer(update, context)
 
 async def receive_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """User sent an image; store its file_id."""
-    context.user_data['new_offer']['image'] = update.message.photo[-1].file_id
-    return await finalize_offer(update, context)
-
+    """User sent an image; store its file_id safely."""
+    try:
+        if update.message.photo:
+            context.user_data['new_offer']['image'] = update.message.photo[-1].file_id
+        else:
+            context.user_data['new_offer']['image'] = None
+        return await finalize_offer(update, context)
+    except Exception as e:
+        logger.error(f"Error receiving image: {e}")
+        await update.message.reply_text("حدث خطأ أثناء تحميل الصورة. يرجى المحاولة مرة أخرى أو استخدم /skip.")
+        return ASK_IMAGE
 async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Save the new offer, schedule deletion, and return to main menu."""
     lang = context.user_data['lang']
