@@ -386,7 +386,7 @@ def main() -> None:
             ],
             ASK_IMAGE: [
                 CommandHandler('skip', skip_image),
-                MessageHandler(filters.PHOTO, receive_image)
+           MessageHandler(filters.PHOTO & ~filters.COMMAND, receive_image)
             ],
         },
         fallbacks=[CommandHandler('cancel', cancel)]
