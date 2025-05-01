@@ -293,10 +293,10 @@ def main():
             SELL_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_price)],
             SELL_CURRENCY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_currency)],
             SELL_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_phone)],
-# ← f-string غير مكتمل
+            SELL_PHOTO: [
                 MessageHandler(filters.PHOTO, sell_photo),
                 CommandHandler("skip", skip_photo)
-            BUY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, buy_select)],
+            ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True
