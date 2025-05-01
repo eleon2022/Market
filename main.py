@@ -287,6 +287,7 @@ def main():
             LANG_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_language)],
             MENU_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, menu_select)],
             SELL_PRODUCT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_product)],
+        states={
             SELL_OCTANE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_octane)],
             SELL_QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_quantity)],
             SELL_UNIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sell_unit)],
