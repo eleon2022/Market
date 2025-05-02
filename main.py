@@ -391,7 +391,7 @@ def main() -> None:
                 MessageHandler(filters.PHOTO, receive_image)
             ],
         },
-        fallbacks=[CommandHandler('cancel', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel), CommandHandler('start', start)]
     )
     application.add_handler(conv_handler)
 
