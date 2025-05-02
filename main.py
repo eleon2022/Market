@@ -133,32 +133,50 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 def main() -> None:
-    # Create the Application and pass the bot's token.
-   app = ApplicationBuilder().token("8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE").build() 
+    TOKEN = "8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE"
+    application = ApplicationBuilder().token(TOKEN).build()
 
-    # Define ConversationHandler with states LANG, PRICE, CURRENCY, PHONE, PHOTO
+    # Conversation handler for main flow
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            LANG: [MessageHandler(filters.Regex('^(العربية|الكردية)$'), language_chosen)],
-            PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, price_input)],
-            CURRENCY: [MessageHandler(filters.Regex('^(دولار|دينار)$'), currency_chosen)],
-            PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, phone_input)],
-            PHOTO: [
-                MessageHandler(filters.PHOTO, photo_received),
-                CommandHandler('skip', skip_photo)
-            ]
+            CHOOSING_LANGUAGE: [
+                CallbackQueryHandler(language_chosen, pattern='^lang_')
+            ],
+            MAIN_MENU: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu)
+            ],
+            SELECT_PRODUCT: [
+                CallbackQueryHandler(product_chosen, pattern='^product_')
+            ],
+            ENTER_OCTANE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, enter_octane)
+            ],
+            ENTER_QUANTITY: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, enter_quantity)
+            ],
+            SELECT_UNIT: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, select_unit)
+            ],
+            ENTER_PRICE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, enter_price)
+            ],
+            SELECT_CURRENCY: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, select_currency)
+            ],
+            ENTER_PHONE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, enter_phone)
+            ],
+            ASK_IMAGE: [
+                CommandHandler('skip', skip_image),
+                MessageHandler(filters.PHOTO & ~filters.COMMAND, receive_image)
+            ],
         },
-        fallbacks=[CommandHandler('cancel', cancel)],
-        allow_reentry=True
+        fallbacks=[CommandHandler('cancel', cancel)]
     )
 
-    # Register handlers
     application.add_handler(conv_handler)
-    application.add_handler(CallbackQueryHandler(show_sales, pattern='^sales$'))
-    application.add_handler(CallbackQueryHandler(show_buys, pattern='^buys$'))
-
-    # Start the bot (use polling; for webhook use appropriate runner)
+    application.add_handler(CallbackQueryHandler(delete_offer, pattern='^delete_'))
     application.run_polling()
 
 if __name__ == '__main__':
