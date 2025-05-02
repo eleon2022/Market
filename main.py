@@ -263,34 +263,47 @@ async def finalize_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     context.user_data.pop('new_offer', None)
     return MAIN_MENU
 
-async def show_my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Display the user's own offers with a delete button for each."""
+async def show_all_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Display all selling offers and all buying requests with optional image."""
     lang = context.user_data['lang']
-    user_id = update.effective_user.id
-    user_offers = [o for o in offers if o['user_id'] == user_id]
-    # Header
-    await update.message.reply_text(TEXTS[lang]['my_offers_header'])
-    if not user_offers:
-        await update.message.reply_text(TEXTS[lang]['no_offers'])
-    else:
-        for offer in user_offers:
+    sell_offers = [o for o in offers if o['type'] == 'sell']
+    buy_offers = [o for o in offers if o['type'] == 'buy']
+
+    # عرض طلبات الشراء
+    if buy_offers:
+        await update.message.reply_text(TEXTS[lang]['all_buy_offers'])
+        for offer in buy_offers:
             prod = PRODUCTS[offer['product_id']][lang]
-            octane_str = ""
-            if offer.get('octane'):
-                octane_str = f" ({'نسبة الأوكتان' if lang=='ar' else 'ژمارەی ئۆکتان'}: {offer['octane']})"
-            type_text = TEXTS[lang][offer['type']]
-            # Compose offer details
-            text = (
-                f"{type_text} {prod}{octane_str}\n"
-                f"📦 {offer['quantity']} {offer['unit']}\n"
-                f"💰 {offer['price']} {offer['currency']}\n"
+            octane_str = f" ({'نسبة الأوكتان' if lang == 'ar' else 'ژمارەی ئۆکتان'}: {offer['octane']})" if offer.get('octane') else ""
+            caption = (
+                f"{prod}{octane_str}\n"
+                f"📦 {offer['quantity']} {offer['unit']} | 💰 {offer['price']} {offer['currency']}\n"
                 f"☎️ {offer['phone']}"
             )
-            # Inline button to delete this offer
-            keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton(TEXTS[lang]['delete_button'], callback_data=f"delete_{offer['id']}")
-            ]])
-            await update.message.reply_text(text, reply_markup=keyboard)
+            if offer.get('image'):
+                await update.message.reply_photo(photo=offer['image'], caption=caption)
+            else:
+                await update.message.reply_text(caption)
+
+    # عرض عروض البيع
+    if sell_offers:
+        await update.message.reply_text(TEXTS[lang]['all_sell_offers'])
+        for offer in sell_offers:
+            prod = PRODUCTS[offer['product_id']][lang]
+            octane_str = f" ({'نسبة الأوكتان' if lang == 'ar' else 'ژمارەی ئۆکتان'}: {offer['octane']})" if offer.get('octane') else ""
+            caption = (
+                f"{prod}{octane_str}\n"
+                f"📦 {offer['quantity']} {offer['unit']} | 💰 {offer['price']} {offer['currency']}\n"
+                f"☎️ {offer['phone']}"
+            )
+            if offer.get('image'):
+                await update.message.reply_photo(photo=offer['image'], caption=caption)
+            else:
+                await update.message.reply_text(caption)
+
+    if not buy_offers and not sell_offers:
+        await update.message.reply_text(TEXTS[lang]['no_offers'])
+
     return MAIN_MENU
 
 async def show_all_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
