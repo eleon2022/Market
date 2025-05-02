@@ -402,7 +402,7 @@ def main() -> None:
 
     # Handler for delete offer buttons (callback queries)
     application.add_handler(CallbackQueryHandler(delete_offer, pattern='^delete_'))
-    application.job_queue = application.job_queue
+    
     # Start the bot (using polling)
     application.run_polling()
 
