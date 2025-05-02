@@ -99,6 +99,7 @@ PRODUCTS = [
 offers = []
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+     context.user_data.clear()
     """Entry point: ask user to select language."""
     keyboard = [
         [InlineKeyboardButton(TEXTS['ar']['arabic'], callback_data='lang_ar'),
