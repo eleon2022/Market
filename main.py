@@ -127,7 +127,7 @@ async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return MAIN_MENU
 
 def main():
-    app = ApplicationBuilder().token("YOUR_BOT_TOKEN").build()
+    app = ApplicationBuilder().token("8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE").build()
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
