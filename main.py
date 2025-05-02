@@ -99,8 +99,7 @@ PRODUCTS = [
 offers = []
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-     context.user_data.clear()
-    """Entry point: ask user to select language."""
+    context.user_data.clear()  # يمسح بيانات المستخدم
     keyboard = [
         [InlineKeyboardButton(TEXTS['ar']['arabic'], callback_data='lang_ar'),
          InlineKeyboardButton(TEXTS['ar']['kurdish'], callback_data='lang_ku')]
