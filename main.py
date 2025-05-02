@@ -134,7 +134,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 def main() -> None:
     # Create the Application and pass the bot's token.
-    application = ApplicationBuilder().token("YOUR_TOKEN_HERE").build()
+   app = ApplicationBuilder().token("8190734067:AAFHgihi5tIdoCKiXBxntOgWNBzguCNVzsE").build() 
 
     # Define ConversationHandler with states LANG, PRICE, CURRENCY, PHONE, PHOTO
     conv_handler = ConversationHandler(
