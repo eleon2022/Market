@@ -99,13 +99,14 @@ PRODUCTS = [
 offers = []
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Entry point: ask user to select language."""
+    """Always restart and ask user to select language."""
+    context.user_data.clear()  # يمسح بيانات المستخدم القديمة
     keyboard = [
-        [InlineKeyboardButton(TEXTS['ar']['arabic'], callback_data='lang_ar'),
-         InlineKeyboardButton(TEXTS['ar']['kurdish'], callback_data='lang_ku')]
+        [InlineKeyboardButton("العربية", callback_data='lang_ar'),
+         InlineKeyboardButton("الكردية", callback_data='lang_ku')]
     ]
     await update.message.reply_text(
-        TEXTS['ar']['select_language'],
+        "اختر لغتك:",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     return CHOOSING_LANGUAGE
