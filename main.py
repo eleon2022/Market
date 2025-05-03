@@ -340,7 +340,7 @@ async def show_all_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         message = TEXTS[lang]['no_offers']
     await update.message.reply_text(message)
     return MAIN_MENU
-  async def show_sell_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def show_sell_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
     lang = context.user_data.get('lang', 'ar')
