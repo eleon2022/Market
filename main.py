@@ -374,7 +374,33 @@ async def show_buy_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await query.message.reply_photo(offer['image'], caption=text)
         else:
             await query.message.reply_text(text)
+async def show_my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """عرض العروض الخاصة بالمستخدم مع أزرار حذف."""
+    lang = context.user_data.get('lang', 'ar')
+    user_id = update.effective_user.id
+    user_offers = [o for o in offers if o['user_id'] == user_id]
 
+    if not user_offers:
+        await update.message.reply_text(TEXTS[lang]['no_offers'])
+        return MAIN_MENU
+
+    await update.message.reply_text(TEXTS[lang]['my_offers_header'])
+
+    for offer in user_offers:
+        prod = PRODUCTS[offer['product_id']][lang]
+        octane_str = f" ({'نسبة الأوكتان' if lang == 'ar' else 'ژمارەی ئۆکتان'}: {offer['octane']})" if offer.get('octane') else ""
+        caption = (
+            f"{prod}{octane_str}\n"
+            f"📦 {offer['quantity']} {offer['unit']} | 💰 {offer['price']} {offer['currency']}\n"
+            f"☎️ {offer['phone']}"
+        )
+        keyboard = [[InlineKeyboardButton(TEXTS[lang]['delete_button'], callback_data=f"delete_{offer['id']}")]]
+        if offer.get('image'):
+            await update.message.reply_photo(photo=offer['image'], caption=caption, reply_markup=InlineKeyboardMarkup(keyboard))
+        else:
+            await update.message.reply_text(caption, reply_markup=InlineKeyboardMarkup(keyboard))
+
+        return MAIN_MENU
 async def delete_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle deletion when the user clicks a delete button."""
     query = update.callback_query
