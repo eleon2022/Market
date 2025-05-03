@@ -340,6 +340,41 @@ async def show_all_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         message = TEXTS[lang]['no_offers']
     await update.message.reply_text(message)
     return MAIN_MENU
+  async def show_sell_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    lang = context.user_data.get('lang', 'ar')
+    sell_offers = [o for o in offers if o['type'] == 'sell']
+    if not sell_offers:
+        await query.message.reply_text(TEXTS[lang]['no_offers'])
+        return
+    await query.message.reply_text(TEXTS[lang]['all_sell_offers'])
+    for offer in sell_offers:
+        prod = PRODUCTS[offer['product_id']][lang]
+        octane = f" ({'نسبة الأوكتان' if lang=='ar' else 'ژمارەی ئۆکتان'}: {offer['octane']})" if offer.get('octane') else ""
+        text = f"{prod}{octane} | 📦 {offer['quantity']} {offer['unit']} | 💰 {offer['price']} {offer['currency']} | ☎️ {offer['phone']}"
+        if offer.get('image'):
+            await query.message.reply_photo(offer['image'], caption=text)
+        else:
+            await query.message.reply_text(text)
+
+ async def show_buy_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    lang = context.user_data.get('lang', 'ar')
+    buy_offers = [o for o in offers if o['type'] == 'buy']
+    if not buy_offers:
+        await query.message.reply_text(TEXTS[lang]['no_offers'])
+        return
+    await query.message.reply_text(TEXTS[lang]['all_buy_offers'])
+    for offer in buy_offers:
+        prod = PRODUCTS[offer['product_id']][lang]
+        octane = f" ({'نسبة الأوكتان' if lang=='ar' else 'ژمارەی ئۆکتان'}: {offer['octane']})" if offer.get('octane') else ""
+        text = f"{prod}{octane} | 📦 {offer['quantity']} {offer['unit']} | 💰 {offer['price']} {offer['currency']} | ☎️ {offer['phone']}"
+        if offer.get('image'):
+            await query.message.reply_photo(offer['image'], caption=text)
+        else:
+            await query.message.reply_text(text)
 
 async def delete_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle deletion when the user clicks a delete button."""
