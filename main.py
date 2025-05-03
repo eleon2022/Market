@@ -357,7 +357,6 @@ async def show_all_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await query.message.reply_photo(offer['image'], caption=text)
         else:
             await query.message.reply_text(text)
-
  async def show_buy_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
