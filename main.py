@@ -451,7 +451,8 @@ def main() -> None:
 
     # Handler for delete offer buttons (callback queries)
     application.add_handler(CallbackQueryHandler(delete_offer, pattern='^delete_'))
-
+    application.add_handler(CallbackQueryHandler(show_sell_offers, pattern='^show_sell_offers$'))
+    application.add_handler(CallbackQueryHandler(show_buy_offers, pattern='^show_buy_offers$'))
     # Start the bot (using polling)
     application.run_polling()
 
