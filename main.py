@@ -382,7 +382,7 @@ async def show_my_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     if not user_offers:
         await update.message.reply_text(TEXTS[lang]['no_offers'])
-    return MAIN_MENU
+        return MAIN_MENU
 
     await update.message.reply_text(TEXTS[lang]['my_offers_header'])
 
