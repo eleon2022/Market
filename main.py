@@ -144,12 +144,12 @@ async def handle_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     elif user_choice == TEXTS[lang]['my_offers']:
         return await show_my_offers(update, context)
     elif user_choice == TEXTS[lang]['all_offers']:
-    keyboard = [
-        [InlineKeyboardButton(TEXTS[lang]['sell_offers_button'], callback_data='show_sell_offers')],
-        [InlineKeyboardButton(TEXTS[lang]['buy_requests_button'], callback_data='show_buy_offers')]
-    ]
-    await update.message.reply_text(TEXTS[lang]['all_offers'], reply_markup=InlineKeyboardMarkup(keyboard))
-    return MAIN_MENU
+        keyboard = [
+            [InlineKeyboardButton(TEXTS[lang]['sell_offers_button'], callback_data='show_sell_offers')],
+            [InlineKeyboardButton(TEXTS[lang]['buy_requests_button'], callback_data='show_buy_offers')]
+        ]
+        await update.message.reply_text(TEXTS[lang]['all_offers'], reply_markup=InlineKeyboardMarkup(keyboard))
+        return MAIN_MENU
     # Start adding a new offer
     context.user_data['new_offer'] = {'type': context.user_data['offer_type']}
     text = TEXTS[lang]['choose_product']
