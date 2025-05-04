@@ -105,6 +105,7 @@ offers = []
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Always restart and ask user to select language."""
     context.user_data.clear()  # يمسح بيانات المستخدم القديمة
+    await update.message.reply_text("أهلاً وسهلاً بكم في بورصة النفط المفتوحة في كردستان والعراق!")
     keyboard = [
         [InlineKeyboardButton("العربية", callback_data='lang_ar'),
          InlineKeyboardButton("الكردية", callback_data='lang_ku')]
